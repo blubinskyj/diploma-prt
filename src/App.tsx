@@ -1,12 +1,11 @@
 import './App.css';
-import Sidebar from './components/sidebar/sidebar.tsx';
-import Canva from './components/canva/canva.tsx';
-
+import Canva from './components/canva/Canva.tsx';
+import Sidebar from './components/sidebar/Sidebar.tsx';
 function App() {
   return (
     <>
       <header>
-        <h1>header</h1>
+        <h2>header</h2>
       </header>
       <main className="flex flex-1">
         <section className="flex-1 bg-gray-50 dark:bg-slate-800 p-6">
