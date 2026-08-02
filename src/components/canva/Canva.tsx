@@ -1,9 +1,11 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import scanSrc from '../../assets/scan.jpg';
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-const Canva: React.FC = () => {
+type Props = { year: string; institution: string; institution2: string };
+
+const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
   // translation in pixels
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
@@ -15,6 +17,44 @@ const Canva: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+  const draggingTextRef = useRef<string | null>(null);
+
+  // positions of text elements in world coordinates (same units as the stage width/height)
+  const [yearPos, setYearPos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem('canva:yearPos');
+      return raw ? JSON.parse(raw) : { x: 762, y: 374 };
+    } catch {
+      return { x: 1500, y: 120 };
+    }
+  });
+  const [instPos, setInstPos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem('canva:instPos');
+      return raw ? JSON.parse(raw) : { x: 109, y: 417 };
+    } catch {
+      return { x: 140, y: 220 };
+    }
+  });
+  const [inst2Pos, setInst2Pos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem('canva:inst2Pos');
+      return raw ? JSON.parse(raw) : { x: 218, y: 482 };
+    } catch {
+      return { x: 140, y: 260 };
+    }
+  });
+
+  // persist positions
+  useEffect(() => {
+    localStorage.setItem('canva:yearPos', JSON.stringify(yearPos));
+  }, [yearPos]);
+  useEffect(() => {
+    localStorage.setItem('canva:instPos', JSON.stringify(instPos));
+  }, [instPos]);
+  useEffect(() => {
+    localStorage.setItem('canva:inst2Pos', JSON.stringify(inst2Pos));
+  }, [inst2Pos]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     // start panning
@@ -24,6 +64,23 @@ const Canva: React.FC = () => {
   };
 
   const onMouseMove = (e: React.MouseEvent) => {
+    if (draggingTextRef.current && lastPosRef.current) {
+      // dragging a text element: update its world position (delta / scale)
+      const dx = e.clientX - lastPosRef.current.x;
+      const dy = e.clientY - lastPosRef.current.y;
+      lastPosRef.current = { x: e.clientX, y: e.clientY };
+      const wx = dx / scale;
+      const wy = dy / scale;
+      if (draggingTextRef.current === 'year') {
+        setYearPos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current === 'inst') {
+        setInstPos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current === 'inst2') {
+        setInst2Pos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      }
+      return;
+    }
+
     if (!draggingRef.current || !lastPosRef.current) return;
     const dx = e.clientX - lastPosRef.current.x;
     const dy = e.clientY - lastPosRef.current.y;
@@ -87,6 +144,24 @@ const Canva: React.FC = () => {
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
+    if (draggingTextRef.current && lastPosRef.current) {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - lastPosRef.current.x;
+      const dy = t.clientY - lastPosRef.current.y;
+      lastPosRef.current = { x: t.clientX, y: t.clientY };
+      const wx = dx / scale;
+      const wy = dy / scale;
+      if (draggingTextRef.current === 'year') {
+        setYearPos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current === 'inst') {
+        setInstPos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current === 'inst2') {
+        setInst2Pos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      }
+      return;
+    }
+
     if (!draggingRef.current || !lastPosRef.current) return;
     if (e.touches.length !== 1) return;
     const t = e.touches[0];
@@ -160,21 +235,98 @@ const Canva: React.FC = () => {
             }}
           />
 
-          {/* transparent overlay for future drawings (above the image) */}
+          {/* text elements positioned in world coordinates - they will be transformed by the parent */}
           <div
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
+            data-draggable
+            onMouseDown={(e) => {
+              // start dragging year text
+              e.stopPropagation();
+              draggingTextRef.current = 'year';
+              lastPosRef.current = { x: e.clientX, y: e.clientY };
+              setIsDragging(true);
             }}
-          />
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              draggingTextRef.current = null;
+              setIsDragging(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              if (e.touches.length === 1) {
+                const t = e.touches[0];
+                draggingTextRef.current = 'year';
+                lastPosRef.current = { x: t.clientX, y: t.clientY };
+                setIsDragging(true);
+              }
+            }}
+            className="absolute"
+            style={{ left: yearPos.x, top: yearPos.y, cursor: 'grab' }}
+          >
+            <div className="select-none text-right text-3xl font-bold text-red-600 dark:text-red-400">
+              {year}
+            </div>
+          </div>
+
+          <div
+            data-draggable
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              draggingTextRef.current = 'inst';
+              lastPosRef.current = { x: e.clientX, y: e.clientY };
+              setIsDragging(true);
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              draggingTextRef.current = null;
+              setIsDragging(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              if (e.touches.length === 1) {
+                const t = e.touches[0];
+                draggingTextRef.current = 'inst';
+                lastPosRef.current = { x: t.clientX, y: t.clientY };
+                setIsDragging(true);
+              }
+            }}
+            className="absolute"
+            style={{ left: instPos.x, top: instPos.y, cursor: 'grab' }}
+          >
+            <div className="select-none text-4xl font-semibold text-red-600 dark:text-red-400">
+              {institution}
+            </div>
+          </div>
+          <div
+            data-draggable
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              draggingTextRef.current = 'inst2';
+              lastPosRef.current = { x: e.clientX, y: e.clientY };
+              setIsDragging(true);
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              draggingTextRef.current = null;
+              setIsDragging(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              if (e.touches.length === 1) {
+                const t = e.touches[0];
+                draggingTextRef.current = 'inst2';
+                lastPosRef.current = { x: t.clientX, y: t.clientY };
+                setIsDragging(true);
+              }
+            }}
+            className="absolute"
+            style={{ left: inst2Pos.x, top: inst2Pos.y, cursor: 'grab' }}
+          >
+            <div className="select-none text-4xl font-semibold text-red-600 dark:text-red-400">
+              {institution2}
+            </div>
+          </div>
         </div>
       </div>
-      {/*<div className="mt-2 text-sm text-slate-600 dark:text-slate-400">*/}
-      {/*  Панорамування: натисніть і перетягуйте, Прокрутка: масштаб*/}
-      {/*</div>*/}
     </div>
   );
 };
