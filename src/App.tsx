@@ -11,7 +11,7 @@ function App() {
         <section className="flex-1 bg-gray-50 dark:bg-slate-800 p-6">
           <Sidebar />
         </section>
-        <section className="flex-4 dark:bg-slate-900 p-6 ">
+        <section className="flex-4 dark:bg-slate-900 px-6 py-2">
           <Canva />
         </section>
       </main>

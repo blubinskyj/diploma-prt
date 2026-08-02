@@ -105,9 +105,27 @@ const Canva: React.FC = () => {
 
   return (
     <div className="w-full h-full " style={{ touchAction: 'none' }}>
+      <div className="flex items-center justify-center gap-2 px-2 py-1 mb-2 rounded">
+        <label className="text-xs text-slate-700 dark:text-slate-200">
+          Прозорість підложки
+        </label>
+        <input
+          aria-label="opacity"
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={bgOpacity}
+          onChange={(e) => setBgOpacity(Number(e.target.value))}
+          className="w-36"
+        />
+        <div className="text-xs w-10 text-right text-slate-700 dark:text-slate-200">
+          {Math.round(bgOpacity * 100)}%
+        </div>
+      </div>
       <div
         ref={containerRef}
-        className="relative w-full h-[80vh] border border-slate-300 dark:border-slate-700 bg-transparent overflow-hidden"
+        className="relative w-full h-[85vh] border border-slate-300 dark:border-slate-700 bg-transparent overflow-hidden"
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={endDrag}
@@ -119,26 +137,6 @@ const Canva: React.FC = () => {
         onTouchEnd={onTouchEnd}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
-        {/* opacity slider placed at the top-left of the area */}
-        <div className="absolute z-30 top-2 left-2 flex items-center gap-2 px-2 py-1 rounded bg-white/70 dark:bg-slate-800/70">
-          <label className="text-xs text-slate-700 dark:text-slate-200">
-            Прозорість підложки
-          </label>
-          <input
-            aria-label="opacity"
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={bgOpacity}
-            onChange={(e) => setBgOpacity(Number(e.target.value))}
-            className="w-36"
-          />
-          <div className="text-xs w-10 text-right text-slate-700 dark:text-slate-200">
-            {Math.round(bgOpacity * 100)}%
-          </div>
-        </div>
-
         <div
           className="absolute top-0 left-0"
           style={{
