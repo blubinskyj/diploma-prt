@@ -52,7 +52,18 @@ const Canva: React.FC<Props> = ({
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const draggingTextRef = useRef<string | null>(null);
 
-  // positions of text elements in world coordinates (same units as the stage width/height)
+  const [studentNamePos, setStudentNamePos] = useState<{
+    x: number;
+    y: number;
+  }>(() => {
+    try {
+      const raw = localStorage.getItem('canva:studentNamePos');
+      return raw ? JSON.parse(raw) : { x: 333, y: 250 };
+    } catch {
+      return { x: 333, y: 250 };
+    }
+  });
+
   const [yearPos, setYearPos] = useState<{ x: number; y: number }>(() => {
     try {
       const raw = localStorage.getItem('canva:yearPos');
@@ -135,7 +146,12 @@ const Canva: React.FC<Props> = ({
     setGradesPositions(newPositions);
   }, [selectedStudent]);
 
-  // persist positions
+  useEffect(() => {
+    localStorage.setItem(
+      'canva:studentNamePos',
+      JSON.stringify(studentNamePos),
+    );
+  }, [studentNamePos]);
   useEffect(() => {
     localStorage.setItem('canva:yearPos', JSON.stringify(yearPos));
   }, [yearPos]);
@@ -173,6 +189,8 @@ const Canva: React.FC<Props> = ({
         setYearPos((p) => ({ x: p.x + wx, y: p.y + wy }));
       } else if (draggingTextRef.current === 'inst') {
         setInstPos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current === 'studentName') {
+        setStudentNamePos((p) => ({ x: p.x + wx, y: p.y + wy }));
       } else if (draggingTextRef.current === 'inst2') {
         setInst2Pos((p) => ({ x: p.x + wx, y: p.y + wy }));
       } else if (draggingTextRef.current.startsWith('grade:')) {
@@ -296,10 +314,14 @@ const Canva: React.FC<Props> = ({
 
   const [bgOpacity, setBgOpacity] = useState(0.9);
 
+  const nameParts = selectedStudent?.name.trim().split(/\s+/);
+  const firstLine = nameParts?.slice(0, 2).join(' ');
+  const secondLine = nameParts?.slice(2).join(' ');
+
   return (
     <div className="w-full h-full " style={{ touchAction: 'none' }}>
       <div className="flex items-center justify-center gap-2 px-2 py-1 mb-2 rounded">
-        <label className="text-xs text-slate-700 dark:text-slate-200">
+        <label className="text-s text-slate-700 dark:text-slate-200">
           Прозорість підложки
         </label>
         <input
@@ -339,7 +361,6 @@ const Canva: React.FC<Props> = ({
             height: 1400,
           }}
         >
-          {/* background image as an <img> so opacity affects only the scan */}
           <img
             src={scanSrc}
             alt="scan"
@@ -352,6 +373,45 @@ const Canva: React.FC<Props> = ({
               display: 'block',
             }}
           />
+          {selectedStudent && (
+            <div
+              data-draggable
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                draggingTextRef.current = 'studentName';
+                lastPosRef.current = { x: e.clientX, y: e.clientY };
+                setIsDragging(true);
+              }}
+              onMouseUp={(e) => {
+                e.stopPropagation();
+                draggingTextRef.current = null;
+                setIsDragging(false);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                if (e.touches.length === 1) {
+                  const t = e.touches[0];
+                  draggingTextRef.current = 'studentName';
+                  lastPosRef.current = { x: t.clientX, y: t.clientY };
+                  setIsDragging(true);
+                }
+              }}
+              className="absolute"
+              style={{
+                left: studentNamePos.x,
+                top: studentNamePos.y,
+                cursor: 'grab',
+              }}
+            >
+              <div
+                id={'name'}
+                className="select-none flex flex-col text-center text-4xl font-bold text-black dark:text-black leading-tight"
+              >
+                <div className={'mb-3'}>{firstLine}</div>
+                {secondLine && <div>{secondLine}</div>}
+              </div>
+            </div>
+          )}
 
           <div
             data-draggable
@@ -379,7 +439,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: yearPos.x, top: yearPos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-right text-3xl font-bold text-red-600 dark:text-red-400">
+            <div className="select-none text-right text-3xl font-bold text-black text-black">
               {year}
             </div>
           </div>
@@ -409,7 +469,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: instPos.x, top: instPos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-4xl font-semibold text-red-600 dark:text-red-400">
+            <div className="select-none text-4xl font-semibold text-black text-black">
               {institution}
             </div>
           </div>
@@ -438,7 +498,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: inst2Pos.x, top: inst2Pos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-4xl font-semibold text-red-600 dark:text-red-400">
+            <div className="select-none text-4xl font-semibold text-black text-black">
               {institution2}
             </div>
           </div>
@@ -483,10 +543,10 @@ const Canva: React.FC<Props> = ({
                       className="select-none text-sm text-slate-900 dark:text-white  w-200
                      flex"
                     >
-                      <span className="flex-5 font-bold text-4xl text-red-600 dark:text-red-400">
+                      <span className="flex-5 font-bold text-4xl text-black text-black">
                         {subject}
                       </span>
-                      <span className="flex-2 font-bold text-4xl text-red-600 dark:text-red-400 ">
+                      <span className="flex-2 font-bold text-4xl text-black text-black ">
                         {getGradeText(grade)}
                       </span>
                     </div>
