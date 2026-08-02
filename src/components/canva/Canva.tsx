@@ -4,6 +4,28 @@ import type { Student } from '../../utils/parseExcel';
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+// Grade number to Ukrainian text mapping
+const gradeToUkrainian: Record<string | number, string> = {
+  0: 'нуль',
+  1: 'один',
+  2: 'два',
+  3: 'три',
+  4: 'чотири',
+  5: "п'ять",
+  6: 'шість',
+  7: 'сім',
+  8: 'вісім',
+  9: "дев'ять",
+  10: 'десять',
+  11: 'одинадцять',
+  12: 'дванадцять',
+};
+
+const getGradeText = (grade: string | number): string => {
+  const numGrade = Number(grade);
+  return gradeToUkrainian[numGrade] || String(grade);
+};
+
 type Props = {
   year: string;
   institution: string;
@@ -458,16 +480,17 @@ const Canva: React.FC<Props> = ({
                       top: gradesPositions[subject]?.y ?? gradesStartPos.y,
                       cursor: 'grab',
                     }}
+                    id={'selected-student'}
                   >
                     <div
-                      className="select-none text-sm text-slate-900 dark:text-white  w-180
-                     flex justify-between"
+                      className="select-none text-sm text-slate-900 dark:text-white  w-200
+                     flex"
                     >
-                      <span className="font-medium text-4xl text-red-600 dark:text-red-400">
+                      <span className="flex-5 font-bold text-4xl text-red-600 dark:text-red-400">
                         {subject}
                       </span>
-                      <span className="font-bold text-4xl text-red-600 dark:text-red-400">
-                        {grade}
+                      <span className="flex-2 font-bold text-4xl text-red-600 dark:text-red-400 ">
+                        {getGradeText(grade)}
                       </span>
                     </div>
                   </div>

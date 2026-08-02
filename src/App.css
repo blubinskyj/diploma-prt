@@ -182,3 +182,7 @@
     border-right-color: var(--border);
   }
 }
+#selected-student {
+  font-family: "Times New Roman", Times, serif;
+  font-style: italic;
+}
