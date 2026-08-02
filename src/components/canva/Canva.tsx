@@ -18,10 +18,10 @@ const Canva: React.FC<Props> = ({
   selectedStudent,
 }) => {
   // translation in pixels
-  const [tx, setTx] = useState(0);
-  const [ty, setTy] = useState(0);
+  const [tx, setTx] = useState(280);
+  const [ty, setTy] = useState(30);
   // scale (zoom)
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.6);
   // dragging UI state (used for cursor and accessibility)
   const [isDragging, setIsDragging] = useState(false);
 
@@ -78,9 +78,9 @@ const Canva: React.FC<Props> = ({
     }
 
     const subjects = Object.keys(selectedStudent.grades);
-    const lineHeight = 20;
-    const startX = 140;
-    const startY = 530;
+    const lineHeight = 55;
+    const startX = 48;
+    const startY = 685;
 
     subjects.forEach((subject, idx) => {
       const key = `${selectedStudent.name}:${subject}`;
@@ -325,7 +325,6 @@ const Canva: React.FC<Props> = ({
             }}
           />
 
-          {/* text elements positioned in world coordinates - they will be transformed by the parent */}
           <div
             data-draggable
             onMouseDown={(e) => {
@@ -451,9 +450,14 @@ const Canva: React.FC<Props> = ({
                       cursor: 'grab',
                     }}
                   >
-                    <div className="select-none text-sm text-slate-900 dark:text-white">
-                      <span className="font-medium">{subject}:</span>{' '}
-                      <span className="font-bold text-red-600 dark:text-red-400">
+                    <div
+                      className="select-none text-sm text-slate-900 dark:text-white  w-180
+                     flex justify-between"
+                    >
+                      <span className="font-medium text-4xl text-red-600 dark:text-red-400">
+                        {subject}
+                      </span>
+                      <span className="font-bold text-4xl text-red-600 dark:text-red-400">
                         {grade}
                       </span>
                     </div>

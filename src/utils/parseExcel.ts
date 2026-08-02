@@ -52,7 +52,7 @@ export async function parseExcelFile(file: File): Promise<ParsedData> {
           if (!name) continue; // Skip empty rows
 
           const grades: Record<string, string | number> = {};
-          for (let j = 1; j < headers.length; j++) {
+          for (let j = 2; j < headers.length; j++) {
             const subject = String(headers[j]).trim();
             const grade = row[j] ?? '';
             if (subject) {
