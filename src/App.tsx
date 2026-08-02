@@ -52,9 +52,8 @@ function App() {
     <>
       <header>
         <div className="flex items-center justify-between">
-          <h1>Диплом ПРТ</h1>
           <div className="flex items-center gap-2">
-            <label className="px-3 py-1 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700">
+            <label className="px-3 py-1 ms-6 my-3 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700">
               Завантажити Excel
               <input
                 type="file"
