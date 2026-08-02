@@ -107,9 +107,7 @@ const Canva: React.FC<Props> = ({
     const start2Y = 120;
 
     subjects.forEach((subject, idx) => {
-      console.log(subject, idx, 'idx');
-      const key = `${selectedStudent.name}:${subject}`;
-      const stored = localStorage.getItem(`canva:grade:${key}`);
+      const stored = localStorage.getItem(`canva:grade:${subject}`);
       if (stored) {
         try {
           newPositions[subject] = JSON.parse(stored);
@@ -152,8 +150,7 @@ const Canva: React.FC<Props> = ({
   useEffect(() => {
     if (!selectedStudent) return;
     Object.entries(gradesPositions).forEach(([subject, pos]) => {
-      const key = `${selectedStudent.name}:${subject}`;
-      localStorage.setItem(`canva:grade:${key}`, JSON.stringify(pos));
+      localStorage.setItem(`canva:grade:${subject}`, JSON.stringify(pos));
     });
   }, [gradesPositions, selectedStudent]);
 
