@@ -33,18 +33,20 @@
 ## Ручне форматування
 
 Щоб вручну відформатувати файл:
+
 - **Ctrl+Alt+Shift+P** (Windows/Linux) або **Cmd+Shift+P** (Mac) → Reformat with Prettier
 - Або через меню: **Code** → **Reformat Code** → **Prettier**
 
 ## Командна стрічка
 
 Для форматування всіх файлів:
+
 ```bash
 npm run format
 ```
 
 Для перевірки без змін:
+
 ```bash
 npm run format:check
 ```
-

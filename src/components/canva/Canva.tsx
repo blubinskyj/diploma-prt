@@ -1,11 +1,22 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import scanSrc from '../../assets/scan.jpg';
+import type { Student } from '../../utils/parseExcel';
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-type Props = { year: string; institution: string; institution2: string };
+type Props = {
+  year: string;
+  institution: string;
+  institution2: string;
+  selectedStudent: Student | null;
+};
 
-const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
+const Canva: React.FC<Props> = ({
+  year,
+  institution,
+  institution2,
+  selectedStudent,
+}) => {
   // translation in pixels
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
@@ -45,6 +56,56 @@ const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
     }
   });
 
+  // grades start position (subsequent grades will be positioned vertically)
+  const [gradesStartPos] = useState<{ x: number; y: number }>({
+    x: 140,
+    y: 530,
+  });
+
+  // positions of grades items (Record<gradeKey, {x, y}>
+  const [gradesPositions, setGradesPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+
+  // Initialize or reset grades positions when selectedStudent changes
+  useEffect(() => {
+    // Load or initialize positions for this student's grades
+    const newPositions: Record<string, { x: number; y: number }> = {};
+    if (!selectedStudent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGradesPositions(newPositions);
+      return;
+    }
+
+    const subjects = Object.keys(selectedStudent.grades);
+    const lineHeight = 20;
+    const startX = 140;
+    const startY = 530;
+
+    subjects.forEach((subject, idx) => {
+      const key = `${selectedStudent.name}:${subject}`;
+      const stored = localStorage.getItem(`canva:grade:${key}`);
+      if (stored) {
+        try {
+          newPositions[subject] = JSON.parse(stored);
+        } catch {
+          newPositions[subject] = {
+            x: startX,
+            y: startY + idx * lineHeight,
+          };
+        }
+      } else {
+        newPositions[subject] = {
+          x: startX,
+          y: startY + idx * lineHeight,
+        };
+      }
+    });
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGradesPositions(newPositions);
+  }, [selectedStudent]);
+
   // persist positions
   useEffect(() => {
     localStorage.setItem('canva:yearPos', JSON.stringify(yearPos));
@@ -55,6 +116,15 @@ const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
   useEffect(() => {
     localStorage.setItem('canva:inst2Pos', JSON.stringify(inst2Pos));
   }, [inst2Pos]);
+
+  // persist grades positions
+  useEffect(() => {
+    if (!selectedStudent) return;
+    Object.entries(gradesPositions).forEach(([subject, pos]) => {
+      const key = `${selectedStudent.name}:${subject}`;
+      localStorage.setItem(`canva:grade:${key}`, JSON.stringify(pos));
+    });
+  }, [gradesPositions, selectedStudent]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     // start panning
@@ -77,6 +147,16 @@ const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
         setInstPos((p) => ({ x: p.x + wx, y: p.y + wy }));
       } else if (draggingTextRef.current === 'inst2') {
         setInst2Pos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current.startsWith('grade:')) {
+        // dragging a grade item
+        const subject = draggingTextRef.current.slice(6); // remove 'grade:' prefix
+        setGradesPositions((prev) => ({
+          ...prev,
+          [subject]: {
+            x: (prev[subject]?.x ?? 0) + wx,
+            y: (prev[subject]?.y ?? 0) + wy,
+          },
+        }));
       }
       return;
     }
@@ -158,6 +238,16 @@ const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
         setInstPos((p) => ({ x: p.x + wx, y: p.y + wy }));
       } else if (draggingTextRef.current === 'inst2') {
         setInst2Pos((p) => ({ x: p.x + wx, y: p.y + wy }));
+      } else if (draggingTextRef.current.startsWith('grade:')) {
+        // dragging a grade item
+        const subject = draggingTextRef.current.slice(6); // remove 'grade:' prefix
+        setGradesPositions((prev) => ({
+          ...prev,
+          [subject]: {
+            x: (prev[subject]?.x ?? 0) + wx,
+            y: (prev[subject]?.y ?? 0) + wy,
+          },
+        }));
       }
       return;
     }
@@ -325,6 +415,53 @@ const Canva: React.FC<Props> = ({ year, institution, institution2 }) => {
               {institution2}
             </div>
           </div>
+
+          {/* Render grades if student is selected */}
+          {selectedStudent && (
+            <>
+              {Object.entries(selectedStudent.grades).map(
+                ([subject, grade]) => (
+                  <div
+                    key={subject}
+                    data-draggable
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      draggingTextRef.current = `grade:${subject}`;
+                      lastPosRef.current = { x: e.clientX, y: e.clientY };
+                      setIsDragging(true);
+                    }}
+                    onMouseUp={(e) => {
+                      e.stopPropagation();
+                      draggingTextRef.current = null;
+                      setIsDragging(false);
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      if (e.touches.length === 1) {
+                        const t = e.touches[0];
+                        draggingTextRef.current = `grade:${subject}`;
+                        lastPosRef.current = { x: t.clientX, y: t.clientY };
+                        setIsDragging(true);
+                      }
+                    }}
+                    className="absolute"
+                    style={{
+                      left: gradesPositions[subject]?.x ?? gradesStartPos.x,
+                      top: gradesPositions[subject]?.y ?? gradesStartPos.y,
+                      cursor: 'grab',
+                    }}
+                  >
+                    <div className="select-none text-sm text-slate-900 dark:text-white">
+                      <span className="font-medium">{subject}:</span>{' '}
+                      <span className="font-bold text-red-600 dark:text-red-400">
+                        {grade}
+                      </span>
+                    </div>
+                  </div>
+                ),
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
