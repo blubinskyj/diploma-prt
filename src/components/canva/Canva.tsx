@@ -78,11 +78,14 @@ const Canva: React.FC<Props> = ({
     }
 
     const subjects = Object.keys(selectedStudent.grades);
-    const lineHeight = 55;
+    const lineHeight = 51;
     const startX = 48;
     const startY = 685;
+    const start2X = 1000;
+    const start2Y = 120;
 
     subjects.forEach((subject, idx) => {
+      console.log(subject, idx, 'idx');
       const key = `${selectedStudent.name}:${subject}`;
       const stored = localStorage.getItem(`canva:grade:${key}`);
       if (stored) {
@@ -90,14 +93,20 @@ const Canva: React.FC<Props> = ({
           newPositions[subject] = JSON.parse(stored);
         } catch {
           newPositions[subject] = {
-            x: startX,
-            y: startY + idx * lineHeight,
+            x: idx <= 11 ? startX : start2X,
+            y:
+              idx <= 11
+                ? startY + idx * lineHeight
+                : start2Y + (idx - 12) * lineHeight,
           };
         }
       } else {
         newPositions[subject] = {
-          x: startX,
-          y: startY + idx * lineHeight,
+          x: idx <= 11 ? startX : start2X,
+          y:
+            idx <= 11
+              ? startY + idx * lineHeight
+              : start2Y + (idx - 12) * lineHeight,
         };
       }
     });
