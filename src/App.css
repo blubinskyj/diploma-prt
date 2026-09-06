@@ -17,6 +17,42 @@
   }
 }
 
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .app-header,
+  .sidebar-panel,
+  .file-upload,
+  .print-button,
+  .canva-toolbar {
+    display: none !important;
+  }
+
+  .app-main,
+  .canvas-panel {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    background: transparent !important;
+  }
+
+  .canvas-viewport {
+    border: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    zoom: 0.8;
+  }
+}
+
 .hero {
   position: relative;
 

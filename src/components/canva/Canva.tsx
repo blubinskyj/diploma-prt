@@ -313,6 +313,21 @@ const Canva: React.FC<Props> = ({
   };
 
   const [bgOpacity, setBgOpacity] = useState(0.9);
+  const [showBackground, setShowBackground] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('canva:showBackground');
+      return raw === null ? false : JSON.parse(raw);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      'canva:showBackground',
+      JSON.stringify(showBackground),
+    );
+  }, [showBackground]);
 
   const nameParts = selectedStudent?.name.trim().split(/\s+/);
   const firstLine = nameParts?.slice(0, 2).join(' ');
@@ -320,27 +335,38 @@ const Canva: React.FC<Props> = ({
 
   return (
     <div className="w-full h-full " style={{ touchAction: 'none' }}>
-      <div className="flex items-center justify-center gap-2 px-2 py-1 mb-2 rounded">
-        <label className="text-s text-slate-700 dark:text-slate-200">
-          Прозорість підложки
+      <div className="canva-toolbar flex flex-col items-center justify-center gap-2 px-2 py-1 mb-2 rounded">
+        <label className="flex items-center gap-2 text-s text-slate-700 dark:text-slate-200">
+          <input
+            type="checkbox"
+            checked={showBackground}
+            onChange={(e) => setShowBackground(e.target.checked)}
+          />
+          Показувати підкладку
         </label>
-        <input
-          aria-label="opacity"
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={bgOpacity}
-          onChange={(e) => setBgOpacity(Number(e.target.value))}
-          className="w-36"
-        />
-        <div className="text-xs w-10 text-right text-slate-700 dark:text-slate-200">
-          {Math.round(bgOpacity * 100)}%
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <label className="text-s text-slate-700 dark:text-slate-200">
+            Прозорість підложки
+          </label>
+          <input
+            aria-label="opacity"
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={bgOpacity}
+            onChange={(e) => setBgOpacity(Number(e.target.value))}
+            className="w-36"
+            disabled={!showBackground}
+          />
+          <div className="text-xs w-10 text-right text-slate-700 dark:text-slate-200">
+            {Math.round(bgOpacity * 100)}%
+          </div>
         </div>
       </div>
       <div
         ref={containerRef}
-        className="relative w-full h-[85vh] border border-slate-300 dark:border-slate-700 bg-transparent overflow-hidden"
+        className="canvas-viewport relative w-full h-[80vh] border border-slate-300 dark:border-slate-700 bg-transparent overflow-hidden"
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={endDrag}
@@ -361,18 +387,20 @@ const Canva: React.FC<Props> = ({
             height: 1400,
           }}
         >
-          <img
-            src={scanSrc}
-            alt="scan"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              opacity: bgOpacity,
-              pointerEvents: 'none',
-              display: 'block',
-            }}
-          />
+          {showBackground && (
+            <img
+              src={scanSrc}
+              alt="scan"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                opacity: bgOpacity,
+                pointerEvents: 'none',
+                display: 'block',
+              }}
+            />
+          )}
           {selectedStudent && (
             <div
               data-draggable

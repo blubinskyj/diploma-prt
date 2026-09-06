@@ -1,6 +1,23 @@
 import React from 'react';
 import type { Student } from '../../utils/parseExcel';
 
+const PrintIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M7 9V4h10v5" />
+    <path d="M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+    <path d="M7 14h10v6H7z" />
+  </svg>
+);
+
 type Props = {
   year: string;
   setYear: (v: string) => void;
@@ -24,7 +41,6 @@ const Sidebar: React.FC<Props> = ({
   selectedStudentIdx,
   onSelectStudent,
 }) => {
-  console.log(students[0], 'student');
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold mb-2">Спільна інформація</h2>
@@ -74,19 +90,39 @@ const Sidebar: React.FC<Props> = ({
             <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
               Дані НЕ зберішаються після перезавантаження сторінки
             </div>
-            <div className="space-y-1 max-h-96 overflow-y-auto border rounded p-2">
+            <div className="space-y-2 max-h-96 overflow-y-auto border rounded p-2">
               {students.map((student, idx) => (
-                <button
+                <div
                   key={idx}
-                  onClick={() => onSelectStudent(idx)}
-                  className={`w-full text-left px-2 py-1 rounded transition-colors text-lg ${
+                  className={`flex items-center gap-2 rounded transition-colors ${
                     selectedStudentIdx === idx
                       ? 'bg-blue-500 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
                   }`}
                 >
-                  {student.name}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectStudent(idx)}
+                    className="flex-1 text-left px-3 py-2 rounded text-xl"
+                  >
+                    {student.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectStudent(idx);
+                      window.setTimeout(() => {
+                        window.print();
+                      }, 50);
+                    }}
+                    className="print-button me-1 shrink-0 rounded bg-slate-800 p-2 text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-100"
+                    aria-label={`Роздрукувати дані студента ${student.name}`}
+                    title={`Роздрукувати дані студента ${student.name}`}
+                  >
+                    <PrintIcon />
+                  </button>
+                </div>
               ))}
             </div>
           </div>

@@ -4,6 +4,9 @@ import Sidebar from './components/sidebar/Sidebar.tsx';
 import { useEffect, useState } from 'react';
 import { parseExcelFile, type Student } from './utils/parseExcel';
 
+const sampleStudentsFileUrl = new URL('./assets/students.xlsx', import.meta.url)
+  .href;
+
 function App() {
   const [year, setYear] = useState<string>(() => {
     return localStorage.getItem('canva:year') || '26';
@@ -48,12 +51,35 @@ function App() {
     }
   };
 
+  const handleLoadSampleFile = async () => {
+    try {
+      const response = await fetch(sampleStudentsFileUrl);
+      if (!response.ok) {
+        throw new Error('Не вдалося завантажити приклад Excel');
+      }
+
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = 'students.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Failed to load sample file';
+      setFileError(msg);
+    }
+  };
+
   return (
     <>
-      <header>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <label className="px-3 py-1 ms-6 my-3 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700">
+      <header className="app-header">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="file-upload px-3 py-1 ms-6 my-3 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700">
               Завантажити Excel
               <input
                 type="file"
@@ -74,10 +100,18 @@ function App() {
               </span>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={handleLoadSampleFile}
+            className="sample-file-button px-3 py-1 my-3 rounded border border-blue-600 bg-white text-blue-700 hover:bg-blue-50"
+          >
+            Завантажити приклад Excel
+          </button>
         </div>
       </header>
-      <main className="flex flex-1">
-        <section className="flex-1 bg-gray-50 dark:bg-slate-800 p-6">
+      <main className="app-main flex flex-1">
+        <section className="sidebar-panel flex-1 bg-gray-50 dark:bg-slate-800 p-6">
           <Sidebar
             year={year}
             setYear={setYear}
@@ -90,7 +124,7 @@ function App() {
             onSelectStudent={setSelectedStudentIdx}
           />
         </section>
-        <section className="flex-4 dark:bg-slate-900 p-6 ">
+        <section className="canvas-panel flex-4 dark:bg-slate-900 p-6 ">
           <Canva
             year={year}
             institution={institution}

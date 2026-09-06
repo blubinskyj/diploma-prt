@@ -19,7 +19,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -30,6 +30,21 @@
   @media (max-width: 1024px) {
     font-size: 16px;
   }
+}
+
+:root[data-theme='dark'] {
+  --text: #e5e7eb;
+  --text-h: #f8fafc;
+  --bg: #0f172a;
+  --border: #334155;
+  --code-bg: #111827;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.18);
+  --accent-border: rgba(192, 132, 252, 0.65);
+  --social-bg: rgba(30, 41, 59, 0.8);
+  --shadow:
+    rgba(0, 0, 0, 0.45) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,10 +74,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
 }
 
 h1,
