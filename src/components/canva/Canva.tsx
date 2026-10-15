@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import scanSrc from '../../assets/scan.jpg';
 import type { Student } from '../../utils/parseExcel';
 
@@ -142,7 +142,6 @@ const Canva: React.FC<Props> = ({
       }
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGradesPositions(newPositions);
   }, [selectedStudent]);
 
@@ -259,6 +258,21 @@ const Canva: React.FC<Props> = ({
     setTy(0);
   };
 
+  const moveAllElements = useCallback((dx: number, dy: number) => {
+    setStudentNamePos((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    setYearPos((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    setInstPos((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    setInst2Pos((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    setGradesPositions((prev) => {
+      return Object.entries(prev).reduce<
+        Record<string, { x: number; y: number }>
+      >((acc, [subject, pos]) => {
+        acc[subject] = { x: pos.x + dx, y: pos.y + dy };
+        return acc;
+      }, {});
+    });
+  }, []);
+
   // touch handlers for panning (simple single-touch pan)
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
@@ -335,33 +349,64 @@ const Canva: React.FC<Props> = ({
 
   return (
     <div className="w-full h-full " style={{ touchAction: 'none' }}>
-      <div className="canva-toolbar flex flex-col items-center justify-center gap-2 px-2 py-1 mb-2 rounded">
-        <label className="flex items-center gap-2 text-s text-slate-700 dark:text-slate-200">
-          <input
-            type="checkbox"
-            checked={showBackground}
-            onChange={(e) => setShowBackground(e.target.checked)}
-          />
-          Показувати підкладку
-        </label>
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <label className="text-s text-slate-700 dark:text-slate-200">
-            Прозорість підложки
+      <div className="canva-toolbar mb-2 grid grid-cols-2 items-center gap-3 px-2 py-1 rounded">
+        <div className="flex items-center justify-start gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => moveAllElements(-20, 0)}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm hover:bg-slate-100"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            onClick={() => moveAllElements(20, 0)}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm hover:bg-slate-100"
+          >
+            →
+          </button>
+          <button
+            type="button"
+            onClick={() => moveAllElements(0, -20)}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm hover:bg-slate-100"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            onClick={() => moveAllElements(0, 20)}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm hover:bg-slate-100"
+          >
+            ↓
+          </button>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 flex-wrap text-slate-700 dark:text-slate-200">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showBackground}
+              onChange={(e) => setShowBackground(e.target.checked)}
+            />
+            Показувати підкладку
           </label>
-          <input
-            aria-label="opacity"
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={bgOpacity}
-            onChange={(e) => setBgOpacity(Number(e.target.value))}
-            className="w-36"
-            disabled={!showBackground}
-          />
-          <div className="text-xs w-10 text-right text-slate-700 dark:text-slate-200">
-            {Math.round(bgOpacity * 100)}%
-          </div>
+          <label className="flex items-center gap-2 text-sm">
+            Прозорість підложки
+            <input
+              aria-label="opacity"
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={bgOpacity}
+              onChange={(e) => setBgOpacity(Number(e.target.value))}
+              className="w-28"
+              disabled={!showBackground}
+            />
+            <span className="text-xs w-9 text-right">
+              {Math.round(bgOpacity * 100)}%
+            </span>
+          </label>
         </div>
       </div>
       <div
@@ -467,7 +512,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: yearPos.x, top: yearPos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-right text-3xl font-bold text-black text-black">
+            <div className="select-none text-right text-3xl font-bold text-black">
               {year}
             </div>
           </div>
@@ -497,7 +542,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: instPos.x, top: instPos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-4xl font-semibold text-black text-black">
+            <div className="select-none text-4xl font-semibold text-black">
               {institution}
             </div>
           </div>
@@ -526,7 +571,7 @@ const Canva: React.FC<Props> = ({
             className="absolute"
             style={{ left: inst2Pos.x, top: inst2Pos.y, cursor: 'grab' }}
           >
-            <div className="select-none text-4xl font-semibold text-black text-black">
+            <div className="select-none text-4xl font-semibold text-black">
               {institution2}
             </div>
           </div>
@@ -571,10 +616,10 @@ const Canva: React.FC<Props> = ({
                       className="select-none text-sm text-slate-900 dark:text-white  w-200
                      flex"
                     >
-                      <span className="flex-5 font-bold text-4xl text-black text-black">
+                      <span className="flex-5 font-bold text-4xl text-black">
                         {subject}
                       </span>
-                      <span className="flex-2 font-bold text-4xl text-black text-black ">
+                      <span className="flex-2 font-bold text-4xl text-black ">
                         {getGradeText(grade)}
                       </span>
                     </div>
