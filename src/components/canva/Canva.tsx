@@ -335,6 +335,14 @@ const Canva: React.FC<Props> = ({
       return false;
     }
   });
+  const [printScale, setPrintScale] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem('canva:printScale');
+      return raw ? JSON.parse(raw) : 0.6;
+    } catch {
+      return 0.6;
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem(
@@ -342,6 +350,10 @@ const Canva: React.FC<Props> = ({
       JSON.stringify(showBackground),
     );
   }, [showBackground]);
+
+  useEffect(() => {
+    localStorage.setItem('canva:printScale', JSON.stringify(printScale));
+  }, [printScale]);
 
   const nameParts = selectedStudent?.name.trim().split(/\s+/);
   const firstLine = nameParts?.slice(0, 2).join(' ');
@@ -391,6 +403,34 @@ const Canva: React.FC<Props> = ({
             Показувати підкладку
           </label>
           <label className="flex items-center gap-2 text-sm">
+            <span>Scale</span>
+            <input
+              aria-label="print scale"
+              type="range"
+              min={0.3}
+              max={1}
+              step={0.01}
+              value={printScale}
+              onChange={(e) => setPrintScale(Number(e.target.value))}
+              className="w-28"
+            />
+            <input
+              aria-label="print scale value"
+              type="number"
+              min={0.3}
+              max={1}
+              step={0.01}
+              value={printScale}
+              onChange={(e) => {
+                const nextValue = Number(e.target.value);
+                if (!Number.isNaN(nextValue)) {
+                  setPrintScale(clamp(nextValue, 0.3, 1));
+                }
+              }}
+              className="w-14 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-slate-700"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
             Прозорість підложки
             <input
               aria-label="opacity"
@@ -421,10 +461,15 @@ const Canva: React.FC<Props> = ({
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        style={
+          {
+            cursor: isDragging ? 'grabbing' : 'grab',
+            ['--print-scale' as string]: String(printScale),
+          } as React.CSSProperties & { ['--print-scale']?: string }
+        }
       >
         <div
-          className="absolute top-0 left-0"
+          className="canvas-stage absolute top-0 left-0"
           style={{
             transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
             transformOrigin: '0 0',
