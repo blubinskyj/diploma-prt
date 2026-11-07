@@ -338,11 +338,43 @@ const Canva: React.FC<Props> = ({
   const [printScale, setPrintScale] = useState<number>(() => {
     try {
       const raw = localStorage.getItem('canva:printScale');
-      return raw ? JSON.parse(raw) : 0.6;
+      return raw ? JSON.parse(raw) : 0.39;
     } catch {
-      return 0.6;
+      return 0.39;
     }
   });
+  const [isPrintLayout, setIsPrintLayout] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const media = window.matchMedia('print');
+    const syncPrintState = () => setIsPrintLayout(media.matches);
+
+    syncPrintState();
+
+    const handleBeforePrint = () => setIsPrintLayout(true);
+    const handleAfterPrint = () => setIsPrintLayout(false);
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    if (media.addEventListener) {
+      media.addEventListener('change', syncPrintState);
+      return () => {
+        media.removeEventListener('change', syncPrintState);
+        window.removeEventListener('beforeprint', handleBeforePrint);
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+
+    media.addListener(syncPrintState);
+    return () => {
+      media.removeListener(syncPrintState);
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(
@@ -658,13 +690,39 @@ const Canva: React.FC<Props> = ({
                     id={'selected-student'}
                   >
                     <div
-                      className="select-none text-sm text-slate-900 dark:text-white  w-200
-                     flex"
+                      className="select-none flex w-220 text-sm text-slate-900 dark:text-white"
+                      style={
+                        isPrintLayout
+                          ? {
+                              gap: 'calc(24px / var(--print-scale, 1))',
+                            }
+                          : { gap: '24px' }
+                      }
                     >
-                      <span className="flex-5 font-bold text-4xl text-black">
+                      <span
+                        className="flex-5 font-bold text-4xl text-black"
+                        style={
+                          isPrintLayout
+                            ? {
+                                fontSize:
+                                  'calc(2.5rem / var(--print-scale, 1))',
+                              }
+                            : undefined
+                        }
+                      >
                         {subject}
                       </span>
-                      <span className="flex-2 font-bold text-4xl text-black ">
+                      <span
+                        className="flex-2 font-bold text-4xl text-black"
+                        style={
+                          isPrintLayout
+                            ? {
+                                fontSize:
+                                  'calc(2.5rem / var(--print-scale, 1))',
+                              }
+                            : undefined
+                        }
+                      >
                         {getGradeText(grade)}
                       </span>
                     </div>
