@@ -103,7 +103,7 @@ const Sidebar: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => onSelectStudent(idx)}
-                    className="flex-1 text-left px-3 py-2 rounded text-xl"
+                    className="flex-1 text-left px-3 py-2 rounded text-base"
                   >
                     {student.name}
                   </button>

@@ -459,7 +459,7 @@ const Canva: React.FC<Props> = ({
                   setPrintScale(clamp(nextValue, 0.3, 1));
                 }
               }}
-              className="w-14 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-slate-700"
+              className="w-14 rounded border border-slate-300 bg-white px-1 py-0.5 text-[11px] text-slate-700"
             />
           </label>
           <label className="flex items-center gap-2 text-sm">
