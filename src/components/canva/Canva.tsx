@@ -392,7 +392,7 @@ const Canva: React.FC<Props> = ({
   const secondLine = nameParts?.slice(2).join(' ');
 
   return (
-    <div className="w-full h-full " style={{ touchAction: 'none' }}>
+    <div className="w-full h-full" style={{ touchAction: 'none' }}>
       <div className="canva-toolbar mb-2 grid grid-cols-2 items-center gap-3 px-2 py-1 rounded">
         <div className="flex items-center justify-start gap-2 flex-wrap">
           <button
@@ -459,7 +459,7 @@ const Canva: React.FC<Props> = ({
                   setPrintScale(clamp(nextValue, 0.3, 1));
                 }
               }}
-              className="w-14 rounded border border-slate-300 bg-white px-1 py-0.5 text-[11px] text-slate-700"
+              className="w-14 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-slate-700"
             />
           </label>
           <label className="flex items-center gap-2 text-sm">
